@@ -1,0 +1,28 @@
+{
+  "tickets": [
+    {
+      "id": "dmt-1",
+      "seq_id": 1,
+      "round": 0,
+      "title": "星尘计划：三端接入联调",
+      "state": "in-progress",
+      "created_by": "human",
+      "roles": [
+        {"agent": "codex", "work": "接入层健康检查与重连", "state": "pending", "artifacts": []},
+        {"agent": "mimo", "work": "成员列表动态渲染", "state": "pending", "artifacts": []}
+      ]
+    },
+    {
+      "id": "dmt-2",
+      "seq_id": 2,
+      "round": 0,
+      "title": "星尘计划：演示素材与门禁预检",
+      "state": "pending",
+      "created_by": "dsh",
+      "roles": [
+        {"agent": "ag", "work": "发布门禁预检与录屏清单", "state": "pending", "artifacts": []},
+        {"agent": "doubao", "work": "演示口播脚本初稿", "state": "pending", "artifacts": []}
+      ]
+    }
+  ]
+}
