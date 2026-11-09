@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-四人协作台：一个本地网页窗口，人类 + Codex + DSH(飞鱼) 在同一个聊天里。
-Antigravity 暂时占位，等它的接口。
 
 用法：
     python hub.py            # 起服务，默认 http://127.0.0.1:8777
