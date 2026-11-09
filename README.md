@@ -1,5 +1,5 @@
 # Conflux 协作台
-(目前仅支持Windows,linux与macOS还未实现)
+# (目前仅支持Windows,linux与macOS还未实现)
 一个本机运行的多智能体协作底座（Multi-Agent Collaboration Hub）：在单一网页时间线中，让**人类总指挥与多个异构 AI 成员同席协作**。支持自动路由、显式点名、单轮多向拆包投递、全员广播模式、插件与自定义角色热插拔，并内置文件读写安全门禁与发布前泄露扫描。
 
 > **零配置即刻可用**：核心服务仅依赖 Python 3.11+ 标准库。多端桥接（DeepSeek  Hardness/ Codex / Antigravity / 豆包 / WorkBuddy 、QQ 桥（NapCat）、私人云端中继与移动端壳均为可选扩展，不配置也能零报错启动。
