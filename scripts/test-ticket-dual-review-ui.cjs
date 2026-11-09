@@ -1,0 +1,20 @@
+const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'..');
+const paths=[path.join(root,'data','hub','index.html'),path.join(root,'scripts','hub-index.html')];
+const blocks=paths.map(p=>{const h=fs.readFileSync(p,'utf8');return h.slice(h.indexOf('  function cleanOutput(text)'),h.indexOf('  function legacyTicket(t, project, index)'));});
+assert(blocks.every(b=>b===blocks[0]),'UI copies differ');
+const ctx={window:{},foldState:{},STAGE_ORDER:['name','goal','plan','delivery'],STAGE_LABEL:{name:'① 项目名称',goal:'② 用户要求',plan:'③ 方案与分工',delivery:'④ 验收与交付'},esc:s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),getAgentDisplayName:id=>({arch:'Argon',ag:'Gemini',codex:'GPT',dsh:'DeepSeek'}[id]||String(id))};
+vm.createContext(ctx);vm.runInContext(blocks[0],ctx);
+const ticket=(status,reviews)=>({id:'fixture',title:'UI fixture',status,current:'delivery',round:2,stages:{delivery:{reviews}},_key:'fixture',_display:'1-2'});
+let tests=0;function check(name,fn){fn();tests++;console.log('PASS '+name)}
+check('all new stage badges',()=>{for(const [s,label] of [['pending_workers','执行中'],['pending_initial_review','待初审'],['pending_final_review','待二审'],['pending_acceptance','待用户验收']])assert(ctx.renderTicketCard(ticket(s)).includes(label));});
+check('exactly four columns retained',()=>{const h=ctx.renderTicketCard(ticket('pending_initial_review'));assert.equal((h.match(/class="tf-contribution"/g)||[]).length,4);});
+check('reviewer decision reason and time',()=>{const h=ctx.renderTicketCard(ticket('pending_final_review',{initial:{by:'arch',passed:true,reason:'实施符合方案',ts:1794200000}}));for(const text of ['Argon','通过','实施符合方案','<time','二审','待审核'])assert(h.includes(text));assert(!h.includes('tf-accept-pass'));});
+check('final rejection shown and no user accept buttons',()=>{const h=ctx.renderTicketCard(ticket('pending_workers',{final:{by:'ag',passed:false,reason:'补充边界验证',ts:1794200000}}));assert(h.includes('驳回'));assert(h.includes('补充边界验证'));assert(!h.includes('tf-accept-pass'));});
+check('review strings escaped',()=>{const h=ctx.renderTicketReviews(ticket('pending_initial_review',{initial:{by:'<img>',passed:false,reason:'<script>alert(1)</script>'}}));assert(!h.includes('<script>'));assert(h.includes('&lt;script&gt;'));assert(h.includes('&lt;img&gt;'));});
+check('false string never rendered as passed',()=>{const h=ctx.renderTicketReviews(ticket('pending_final_review',{initial:{passed:'false'}}));assert(h.includes('结论待核对'));assert(!h.includes('>通过<'));});
+check('archived rounds not current approval',()=>{let t=ticket('pending_initial_review');t.rounds_history=[{round:1,stages:{delivery:{reviews:{initial:{by:'arch',passed:true,reason:'旧轮通过'}}}}}];const h=ctx.renderTicketReviews(t);assert(h.includes('历轮审核记录'));assert(h.includes('历史记录·已失效'));assert(h.includes('待审核'));});
+check('invalidated and previous-round records marked',()=>{for(const extra of [{invalidated:true},{valid:false},{round:1}]){const h=ctx.renderTicketReviews(ticket('pending_initial_review',{initial:{passed:true,...extra}}));assert(h.includes('历史记录·已失效'));}});
+check('legacy ticket remains usable',()=>{const h=ctx.renderTicketCard(ticket('pending_acceptance'));assert(h.includes('tf-accept-pass'));assert(!h.includes('tf-dual-reviews'));});
+check('three inline script copies parse',()=>{for(const p of paths){const h=fs.readFileSync(p,'utf8');for(const m of h.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)){if(/\bsrc\s*=|application\/json/.test(m[1]))continue;new vm.Script(m[2]);}}});
+console.log(tests+' UI checks passed');
